@@ -55,6 +55,7 @@ export class ProductsService {
 
     return newProduct;
   }
+
   async createdPhoto(id: string, photos: PhotoDto) {
     const productFound = await this.productRepository.find({
       where: {
@@ -67,6 +68,7 @@ export class ProductsService {
     const newPhotos = this.photosRepository.create(photos);
     return newPhotos;
   }
+
   async savePhotos(cakeName: string, body: PhotoDto[]) {
     const product = await this.productRepository.findOne({
       where: {
@@ -87,31 +89,44 @@ export class ProductsService {
       });
       return cakeFound;
     }
-    throw new NotFoundException(`No encontramos el producto ${cakeName}`);
+    throw new NotFoundException(`Not found ${cakeName}`);
   }
-  async getAllProducts() {
+
+  async getAviableProducts() {
     const cakeFound = await this.productRepository.find({
       where: {
-        deleted : false,
+        deleted: false,
       },
       relations: ['photos'],
     });
 
     return cakeFound;
   }
-  async getProduct(id: string) {
+
+  async getProduct(cakeName: string) {
     const productFound = await this.productRepository.findOne({
       where: {
-        id,
+        cakeName,
+        deleted: false,
       },
       relations: ['photos'],
     });
+    console.log(productFound);
+    if (!productFound) throw new NotFoundException(`Not found${cakeName}`);
     return productFound;
   }
-  async deleteProduct(id: string){
-   return await this.productRepository.delete({id})
+
+  async deleteProduct(id: string) {
+    return await this.productRepository.delete(id);
   }
-  async updateProduct(id: string, product: UpdateProductDto){
-    return this.productRepository.update({id}, product)
+
+  async updateProduct(id: string, product: UpdateProductDto) {
+    return this.productRepository.update(id, product);
+  }
+
+  async getAllProducts() {
+    const cakeFound = await this.productRepository.find();
+
+    return cakeFound;
   }
 }

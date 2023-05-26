@@ -8,19 +8,24 @@ import {
   Param,
   Delete,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { ProductDto } from './dto/product.dto';
 import { PhotoDto } from 'src/photo/dto/photo.dto';
 import { ProductsService } from './products.service';
-import { Product } from './product.entity';
 import { UpdateProductDto } from './dto/updateProduct.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 
+@ApiTags('products')
 @Controller('products')
 export class ProductsController {
   constructor(private productService: ProductsService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post('upload')
   @UseInterceptors(FilesInterceptor('file'))
   async uploadFile(
@@ -45,25 +50,34 @@ export class ProductsController {
       newProduct.cakeName,
       uploadedPhotos,
     );
-    console.log(newPhoto, 'esto es el producto final');
     return newPhoto;
   }
 
   @Get()
-  async getAllProducts(){
-    return this.productService.getAllProducts()
+  async getAviableProducts() {
+    return this.productService.getAviableProducts();
   }
-  @Get(':id')
-  async getProductById(@Param() id: string ): Promise<Product>{
-    return this.productService.getProduct(id)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('/admin/all')
+  async getAllProducts() {
+    return this.productService.getAllProducts();
   }
+  @Get(':cakeName')
+  async getProductById(@Param('cakeName') cakeName: string) {
+    return this.productService.getProduct(cakeName);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async deleteProduct(@Param() id: string){
-    return this.productService.deleteProduct(id)
+  async deleteProduct(@Param() id: string) {
+    return this.productService.deleteProduct(id);
   }
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async updateProduct(@Param() id: string, @Body() product: UpdateProductDto){
-    return this.productService.updateProduct(id, product)
+  async updateProduct(@Param() id: string, @Body() product: UpdateProductDto) {
+    return this.productService.updateProduct(id, product);
   }
-  
 }
